@@ -15,12 +15,13 @@ class Phrase{
 }
 
 
-function openFile(path){
+function openFile(path, requete = ""){
   console.log(path);
   fs.readFile(path, 'utf8', function (err,data) {
     if (err) {
       return console.log(err);
     }
+    console.log("Ouverture réussie");
 
     const lines = data.split(/\r?\n/);
     lines.forEach((line) => {
@@ -45,10 +46,7 @@ function openFile(path){
           }
         }
       });
-
-
     });
-    
   });
 }
 
