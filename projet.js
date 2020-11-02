@@ -6,16 +6,51 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-class Phrase{
-  constructor(sujet="", predicat="", objet= "") {
-    this.sujet = sujet;
-    this.predicat = predicat;
-    this.objet = objet;
+class Requete{
+  constructor(requete) {
+    let words = requete.split(" ");
+    this.sujet = words[0]
+    this.predicat = words[1]
+    this.objet = words[2]
+
+    if(words[0].match("^\\?.*")){
+      console.log("Sujet est une wildcard");
+      this.wildSujet = true;
+      if(words[0].match("^\\?@.*")){
+        console.log("Sujet a une annotation")
+        this.hasAnnoSujet = true;
+        let tmp = words[0].split("@")
+        this.annoSujet = tmp[1]
+      }
+    }
+
+    if(words[1].match("^\\?.*")){
+      console.log("Predicat est une wildcard");
+      this.wildPredicat = true;
+      if(words[1].match("^\\?@.*")){
+        console.log("Predicat a une annotation")
+        this.hasAnnoPredicat = true;
+        let tmp = words[1].split("@")
+        this.annoPredicat = tmp[1]
+      }
+    }
+
+    if(words[2].match("^\\?.*")){
+      console.log("Objet est une wildcard");
+      this.wildObjet = true;
+      if(words[2].match("^\\?@.*")){
+        console.log("Objet a une annotation")
+        this.hasAnnoObjet = true;
+        let tmp = words[2].split("@")
+        this.annoObjet = tmp[1]
+      }
+    }
   }
 }
 
 
-function openFile(path, requete = ""){
+
+function openFile(path, requete){
   console.log(path);
   fs.readFile(path, 'utf8', function (err,data) {
     if (err) {
@@ -25,29 +60,26 @@ function openFile(path, requete = ""){
 
     const lines = data.split(/\r?\n/);
     lines.forEach((line) => {
-      let phrase = new Phrase();
-      let type = 0;
+      let printLine = true;
+      
       words = line.split(" ");
-      words.forEach((word) => {
-        if( word.match("^<.*>$")){
-          switch(type){
-            case 0:
-              phrase.sujet = word;
-              type++;
-            break;
-            case 1:
-              phrase.predicat = word;
-              type++;
-            break;
-            case 2:
-              phrase.objet = word;
-              type = 0;
-            break;
-          }
+      if (requete.wildSujet && requete.hasAnnoSujet){
+        if (!words[0].match(".*@"+requete.annoSujet+"$")){
+          printLine = false;
         }
-      });
+      }else if(!requete.wildSujet &&  words[0] != requete.sujet){
+        printLine = false;
+      }
+
+
+      if(printLine) console.log(line)
     });
   });
 }
 
-openFile(process.argv[2]);
+
+
+
+let requete = new Requete(process.argv[3])
+console.log(requete)
+openFile(process.argv[2], requete);
